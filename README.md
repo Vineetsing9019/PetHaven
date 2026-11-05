@@ -93,15 +93,29 @@ Everyone who registers is a USER. To make an admin, change the role in MySQL:
 UPDATE users SET role = 'ROLE_ADMIN' WHERE email = 'admin@example.com';
 ```
 
+## Tests
+
+Unit tests with **JUnit 5 and Mockito** cover the adoption rules and registration (8 tests). The repositories are mocked, so they run without a database:
+
+```bash
+./mvnw test -Dtest="*ServiceTest"
+```
+
+- A request for an available animal is saved as PENDING and holds the animal
+- A request for an animal that is not available is refused (400), and an unknown animal gives 404
+- Approving marks the animal ADOPTED; rejecting makes it AVAILABLE again
+- A request that was already decided can't be approved again
+- Registering hashes the password, gives the USER role and refuses a duplicate email
+
 ## What I learned
 
 - Securing endpoints by role with Spring Security, and storing passwords safely with BCrypt
 - Modelling one-to-many relationships with JPA and avoiding JSON loops with `@JsonIgnore`
 - Keeping business rules in the service layer and returning proper HTTP status codes
+- Unit testing the service layer with JUnit 5 and Mockito
 - Exposing simple CRUD with Spring Data REST while keeping sensitive tables private
 
 ## Next steps
 
 - Swagger (OpenAPI) documentation
-- Unit tests for the adoption rules with JUnit and Mockito
 - JWT login and a React front end
