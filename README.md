@@ -4,6 +4,39 @@ A REST API for an animal shelter. People register, browse the animals and send a
 
 Built with **Java 17, Spring Boot, Spring Security, Spring Data JPA, Spring Data REST and MySQL**.
 
+![Java 17](https://img.shields.io/badge/Java-17-orange?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f?logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring%20Security-BCrypt%20%2B%20roles-6db33f?logo=springsecurity&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479a1?logo=mysql&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-JUnit%205%20%2B%20Mockito-25a162)
+
+### How an adoption works
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant API as PetHaven API
+    participant DB as MySQL
+    actor A as Admin
+    U->>API: POST /adoptions/request/{animalId}
+    API->>DB: animal AVAILABLE? save request PENDING, animal PENDING
+    API-->>U: request saved (or 400 if not available, 404 if unknown)
+    A->>API: PUT /adoptions/{id}/approve
+    API->>DB: request APPROVED, animal ADOPTED
+    API-->>A: updated request
+    Note over A,API: or PUT /adoptions/{id}/reject: request REJECTED, animal AVAILABLE again
+```
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> AVAILABLE
+    AVAILABLE --> PENDING: user sends a request
+    PENDING --> ADOPTED: admin approves
+    PENDING --> AVAILABLE: admin rejects
+    ADOPTED --> [*]
+```
+
 ## Features
 
 - **Register and log in** with email and password. Passwords are stored hashed with BCrypt.
@@ -51,8 +84,11 @@ curl -u asha@example.com:secret123 -X POST http://localhost:8080/adoptions/reque
 
 ## Data model
 
-```
-Category 1 ── * Animal 1 ── * AdoptionRequest * ── 1 User
+```mermaid
+erDiagram
+    CATEGORY ||--o{ ANIMAL : contains
+    ANIMAL ||--o{ ADOPTION_REQUEST : "is asked for in"
+    USER ||--o{ ADOPTION_REQUEST : sends
 ```
 
 - **Animal:** name, breed, age, gender, description, image URL, status
